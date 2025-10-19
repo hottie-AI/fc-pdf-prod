@@ -1,0 +1,375 @@
+---
+alwaysApply: true
+description: PDF Splitter 프로젝트 아키텍처 및 구조 가이드
+---
+
+# PDF Splitter 프로젝트 아키텍처
+
+## 프로젝트 개요
+PDF Splitter는 Next.js 15 기반의 웹 애플리케이션으로, PDF 파일을 페이지별로 분할하여 개별 또는 선택적으로 다운로드할 수 있는 도구입니다. 모든 처리는 클라이언트 측에서 이루어지며 서버로 파일이 전송되지 않아 보안성이 높습니다.
+
+## 기술 스택
+- **프레임워크**: Next.js 15.1.0 (App Router)
+- **언어**: TypeScript
+- **스타일링**: Tailwind CSS
+- **UI 컴포넌트**: Shadcn/ui
+- **아이콘**: Lucide React
+- **파일 업로드**: React Dropzone
+- **PDF 처리**: PDF-lib
+- **압축**: JSZip
+
+## 프로젝트 구조
+
+### 루트 디렉토리
+```
+/Users/JM/Documents/Coding/PDF/
+├── src/                    # 소스 코드
+├── .cursor/               # Cursor IDE 설정
+│   └── rules/            # 프로젝트 규칙 문서
+├── PRD/                   # 프로젝트 요구사항 문서
+├── package.json           # 의존성 및 스크립트
+├── tailwind.config.ts     # Tailwind CSS 설정
+├── tsconfig.json         # TypeScript 설정
+├── next.config.js        # Next.js 설정
+└── README.md             # 프로젝트 문서
+```
+
+### 소스 코드 구조
+```
+src/
+├── app/                   # Next.js App Router
+│   ├── page.tsx          # 메인 페이지 컴포넌트
+│   ├── layout.tsx        # 루트 레이아웃
+│   └── globals.css       # 전역 스타일
+├── components/           # React 컴포넌트
+│   ├── ui/              # Shadcn/ui 기본 컴포넌트
+│   │   ├── button.tsx
+│   │   ├── card.tsx
+│   │   └── input.tsx
+│   ├── file-upload.tsx       # 파일 업로드 컴포넌트
+│   ├── progress-indicator.tsx # 진행률 표시 컴포넌트
+│   ├── page-selector.tsx     # 페이지 선택 컴포넌트
+│   └── error-message.tsx     # 에러 메시지 컴포넌트
+├── lib/                 # 유틸리티 함수
+│   ├── utils.ts         # 공통 유틸리티
+│   ├── pdf-utils.ts     # PDF 처리 유틸리티
+│   └── zip-utils.ts     # ZIP 생성 유틸리티
+└── types/               # TypeScript 타입 정의
+    └── index.ts         # 프로젝트 타입
+```
+
+## 핵심 컴포넌트
+
+### 메인 페이지 ([src/app/page.tsx](mdc:src/app/page.tsx))
+- 애플리케이션의 진입점 및 전체 워크플로우 관리
+- 3단계 UI 플로우:
+  1. 파일 업로드 화면
+  2. PDF 처리 진행률 표시
+  3. 페이지 선택 및 다운로드 화면
+- 상태 관리: uploadState, processingState, splitPages
+- 사용자 인터페이스 레이아웃 및 기능 안내
+
+### 파일 업로드 컴포넌트 ([src/components/file-upload.tsx](mdc:src/components/file-upload.tsx))
+- 드래그 앤 드롭 파일 업로드
+- 클릭 업로드 기능
+- PDF 파일 형식 검증
+- 파일 크기 제한 (100MB)
+- 업로드 상태 표시 및 에러 처리
+- disabled 속성 지원
+- **Phase 3 개선사항:**
+  - 호버 시 scale 애니메이션 효과
+  - 드래그 활성화 시 실시간 시각적 피드백 (텍스트/색상 변경)
+  - 업로드 성공 시 glow 효과 (blur + pulse)
+  - 에러 시 shake 애니메이션
+  - shadow와 border 트랜지션
+
+### 진행률 표시 컴포넌트 ([src/components/progress-indicator.tsx](mdc:src/components/progress-indicator.tsx))
+- PDF 처리 중 실시간 진행률 표시
+- 단계별 상태 표시 (읽기/분할/압축/완료)
+- 퍼센티지 및 진행 바 표시
+- **Phase 3 개선사항:**
+  - 더 크고 명확한 아이콘 (16px)
+  - 단계별 색상 구분 (읽기: 파란색, 분할: 파란색, 압축: 보라색, 완료: 초록색)
+  - 커스텀 border 스피너 애니메이션
+  - 완료 시 bounce 애니메이션
+  - 진행 바 shimmer 효과
+  - 그라데이션 배경 및 shadow 효과
+
+### 페이지 선택 컴포넌트 ([src/components/page-selector.tsx](mdc:src/components/page-selector.tsx))
+- 분할된 PDF 페이지 목록 표시
+- 체크박스를 통한 페이지 선택/해제
+- 전체 선택/해제 기능
+- 개별 페이지 다운로드 버튼
+- 선택한 페이지 ZIP 다운로드
+- 전체 페이지 ZIP 다운로드
+- 실시간 선택 통계 (페이지 수, 파일 크기)
+- **Phase 3 개선사항:**
+  - 그라데이션 헤더 배경
+  - 페이지 항목 호버 시 scale 및 shadow 효과
+  - 선택 상태 시각적 강조 (파란색 배경, shadow)
+  - 체크박스 애니메이션
+  - 버튼 호버 시 scale 효과
+  - 스태거 애니메이션 (항목별 순차 표시)
+
+### 에러 메시지 컴포넌트 ([src/components/error-message.tsx](mdc:src/components/error-message.tsx))
+- **Phase 3 신규 추가**
+- 에러 유형별 맞춤 해결 방안 제시
+- PDF 분할 실패, ZIP 생성 실패, 메모리 부족 등 상황별 가이드
+- 재시도 및 초기화 버튼 제공
+- severity 레벨 지원 (error/warning)
+- 시각적으로 명확한 에러 표시
+
+### UI 컴포넌트 ([src/components/ui/](mdc:src/components/ui/))
+- Shadcn/ui 기반 재사용 가능한 컴포넌트
+- Button, Card, Input 등 기본 UI 요소
+- 일관된 디자인 시스템
+- hover, focus, active 상태별 스타일링
+
+## 유틸리티 함수
+
+### PDF 처리 유틸리티 ([src/lib/pdf-utils.ts](mdc:src/lib/pdf-utils.ts))
+- `splitPDF()`: PDF 파일을 페이지별로 분할
+- `getPDFPageCount()`: PDF 페이지 수 반환
+- `validatePDF()`: PDF 파일 유효성 검사
+- 진행률 콜백 지원
+
+### ZIP 생성 유틸리티 ([src/lib/zip-utils.ts](mdc:src/lib/zip-utils.ts))
+- `createZipFromPages()`: 분할된 페이지를 ZIP으로 압축
+- `downloadZip()`: ZIP 파일 다운로드 처리
+- `generateZipFileName()`: ZIP 파일명 생성 (타임스탬프 포함)
+
+## 타입 정의 ([src/types/index.ts](mdc:src/types/index.ts))
+
+### UploadedFile 인터페이스
+```typescript
+interface UploadedFile {
+  file: File;
+  name: string;
+  size: number;
+  type: string;
+}
+```
+
+### UploadState 타입
+```typescript
+type UploadStatus = 'idle' | 'uploading' | 'success' | 'error';
+
+interface UploadState {
+  status: UploadStatus;
+  file: UploadedFile | null;
+  error: string | null;
+}
+```
+
+### ProcessingState 타입
+```typescript
+type ProcessingStatus = 'idle' | 'reading' | 'splitting' | 'zipping' | 'complete' | 'error';
+
+interface ProcessingProgress {
+  status: ProcessingStatus;
+  currentPage: number;
+  totalPages: number;
+  percentage: number;
+  message: string;
+}
+
+interface ProcessingState {
+  isProcessing: boolean;
+  progress: ProcessingProgress | null;
+  error: string | null;
+}
+```
+
+### SplitPageInfo 인터페이스
+```typescript
+interface SplitPageInfo {
+  pageNumber: number;
+  pdfBytes: Uint8Array;
+  fileName: string;
+  selected?: boolean;
+}
+```
+
+## 개발 단계 (Phase)
+
+### Phase 1: 기본 기능 구현 ✅
+- Next.js 프로젝트 설정
+- 파일 업로드 기능
+- 기본 UI 및 에러 처리
+- 반응형 디자인
+
+### Phase 2: PDF 처리 기능 ✅
+- PDF-lib을 사용한 PDF 읽기 및 분할
+- 실시간 진행률 표시
+- 페이지 선택 UI
+- 개별 페이지 다운로드
+- 선택적 ZIP 다운로드
+- 전체 ZIP 다운로드
+
+### Phase 3: UI/UX 개선 ✅
+- **완료된 항목:**
+  - ✅ 로딩 상태 UI 개선 (애니메이션, 색상 구분, 진행 바 효과)
+  - ✅ 에러 처리 개선 (맞춤형 해결 방안, ErrorMessage 컴포넌트)
+  - ✅ 인터랙션 개선 (호버 효과, 트랜지션, 드래그 피드백)
+  - ✅ 성능 최적화 (메모리 관리, 비동기 처리)
+  - ✅ 반응형 디자인 완성 (모바일, 태블릿 대응)
+  - ✅ 접근성 개선 (ARIA 라벨, 키보드 네비게이션)
+- **향후 고려사항:**
+  - 🔄 페이지 미리보기 (썸네일)
+  - 🔄 페이지 범위 선택 기능
+  - 🔄 드래그 앤 드롭 페이지 정렬
+  - 🔄 다크 모드 지원
+  - 🔄 다국어 지원
+
+### Phase 4: 테스트 및 배포 (예정)
+- 테스트 케이스 작성
+- 성능 최적화
+- 프로덕션 배포
+- 에러 모니터링
+
+## 사용자 워크플로우
+
+1. **파일 업로드**
+   - 사용자가 PDF 파일을 드래그 앤 드롭 또는 클릭하여 업로드
+   - 파일 형식 및 크기 검증
+
+2. **분할 시작**
+   - "분할 시작하기" 버튼 클릭
+   - PDF 읽기 및 페이지별 분할 진행
+   - 실시간 진행률 표시
+
+3. **페이지 선택**
+   - 분할된 페이지 목록 표시
+   - 체크박스로 원하는 페이지 선택
+   - 전체 선택/해제 토글
+
+4. **다운로드**
+   - 개별 페이지 다운로드 (각 페이지 옆 버튼)
+   - 선택한 페이지만 ZIP으로 다운로드
+   - 전체 페이지 ZIP으로 다운로드
+
+## 개발 명령어
+
+```bash
+# 개발 서버 실행
+npm run dev
+
+# 프로덕션 빌드
+npm run build
+
+# 프로덕션 서버 실행
+npm run start
+
+# 린팅 검사
+npm run lint
+```
+
+## 접속 정보
+- **개발 서버**: http://localhost:3000
+- **포트**: 3000 (사용 중이면 3001, 3002로 자동 변경)
+
+## 주요 기능
+
+### 현재 구현된 기능 (Phase 1-3) ✅
+**Phase 1: 기본 기능**
+- ✅ PDF 파일 드래그 앤 드롭 업로드
+- ✅ 클릭 업로드
+- ✅ 파일 형식 검증 (PDF만 허용)
+- ✅ 파일 크기 제한 (100MB)
+- ✅ 기본 에러 처리
+- ✅ 반응형 디자인 (기본)
+
+**Phase 2: PDF 처리**
+- ✅ PDF 페이지별 분할
+- ✅ 실시간 진행률 표시
+- ✅ 페이지 선택 UI (체크박스)
+- ✅ 개별 페이지 다운로드
+- ✅ 선택한 페이지 ZIP 다운로드
+- ✅ 전체 페이지 ZIP 다운로드
+- ✅ 클라이언트 측 처리 (서버 전송 없음)
+
+**Phase 3: UI/UX 개선**
+- ✅ 고급 애니메이션 효과 (scale, bounce, fade, shimmer)
+- ✅ 단계별 색상 구분 시스템
+- ✅ 스마트 에러 처리 (상황별 해결 방안 제시)
+- ✅ 향상된 호버/인터랙션 효과
+- ✅ 그라데이션 및 shadow 디자인 시스템
+- ✅ 드래그 앤 드롭 실시간 피드백
+- ✅ 완전한 반응형 디자인
+- ✅ 접근성 표준 준수 (ARIA, 키보드)
+- ✅ 메모리 최적화 (URL 해제, 비동기 처리)
+
+### 향후 구현 예정 (Phase 4)
+- 🔄 단위 테스트 및 통합 테스트
+- 🔄 E2E 테스트
+- 🔄 성능 벤치마크
+- 🔄 프로덕션 배포
+- 🔄 에러 모니터링
+- 🔄 분석 및 메트릭스
+
+### 추가 고려사항
+- 🔄 페이지 미리보기 (썸네일)
+- 🔄 페이지 범위 선택
+- 🔄 페이지 재정렬 (드래그 앤 드롭)
+- 🔄 다크 모드
+- 🔄 다국어 지원
+- 🔄 PDF 병합 기능
+
+## 코드 스타일 가이드
+- TypeScript strict 모드 사용
+- Tailwind CSS로 스타일링
+- Shadcn/ui 컴포넌트 시스템 활용
+- 함수형 컴포넌트 및 React Hooks 사용 (useState, useCallback)
+- 접근성 고려 (ARIA 라벨, 키보드 네비게이션)
+- 에러 처리 필수 (try-catch, 사용자 피드백)
+
+## 보안 및 개인정보 보호
+- 모든 PDF 처리는 브라우저(클라이언트)에서 수행
+- 서버로 파일이 전송되지 않음
+- 사용자 데이터가 저장되지 않음
+- 처리 완료 후 메모리에서 자동 해제
+
+## 성능 고려사항
+- 대용량 PDF 파일 (100MB 이하) 지원
+- 비동기 처리로 UI 블로킹 방지
+- 진행률 표시로 사용자 경험 향상
+- URL.revokeObjectURL로 메모리 누수 방지
+- **Phase 3 추가 최적화:**
+  - CSS 트랜지션 하드웨어 가속 (transform, opacity)
+  - 애니메이션 duration 최적화 (200-500ms)
+  - 조건부 렌더링으로 불필요한 컴포넌트 제거
+  - useCallback으로 함수 메모이제이션
+
+## UI/UX 디자인 시스템 (Phase 3)
+
+### 색상 시스템
+- **Primary (파란색)**: 일반적인 작업, 읽기/분할 상태
+- **Purple (보라색)**: ZIP 압축 상태
+- **Green (초록색)**: 성공, 완료 상태
+- **Red (빨간색)**: 에러, 경고 상태
+- **Gray**: 중립, 비활성 상태
+
+### 애니메이션 가이드라인
+- **Scale**: 1.01-1.05 (호버, 선택)
+- **Duration**: 200-500ms (일반), 2s (shimmer)
+- **Easing**: ease-in-out, ease-out
+- **효과 종류**: scale, fade-in, bounce, pulse, shimmer, shake
+
+### 간격 및 크기
+- **아이콘**: 12px (작은), 16px (중간), 20px+ (큰)
+- **Padding**: 16px (기본), 24px (큰 카드)
+- **Gap**: 8px (작은), 12px (중간), 16px (큰)
+- **Border Radius**: 8px (카드), 12px (큰 카드), 전체 (pill)
+
+### 반응형 브레이크포인트
+- **Mobile**: < 640px
+- **Tablet**: 640px - 1024px
+- **Desktop**: > 1024px
+- Tailwind의 `md:`, `lg:` prefix 활용
+
+## 파일 참조
+- [package.json](mdc:package.json) - 프로젝트 의존성 및 스크립트
+- [tailwind.config.ts](mdc:tailwind.config.ts) - Tailwind CSS 설정
+- [tsconfig.json](mdc:tsconfig.json) - TypeScript 설정
+- [next.config.js](mdc:next.config.js) - Next.js 설정
+- [components.json](mdc:components.json) - Shadcn/ui 설정
