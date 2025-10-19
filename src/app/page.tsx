@@ -1,14 +1,15 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { FileUpload } from '@/components/file-upload';
 import { ProgressIndicator } from '@/components/progress-indicator';
 import { PageSelector } from '@/components/page-selector';
 import { ErrorMessage } from '@/components/error-message';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { InteractiveRobotSpline } from '@/components/ui/interactive-3d-robot';
 import { UploadedFile, UploadState, ProcessingState, ProcessingProgress, SplitPageInfo } from '@/types';
 import { splitPDF } from '@/lib/pdf-utils';
 import { createZipFromPages, downloadZip, generateZipFileName } from '@/lib/zip-utils';
+import { useDropzone } from 'react-dropzone';
 
 export default function Home() {
   const [uploadState, setUploadState] = useState<UploadState>({
@@ -128,51 +129,124 @@ export default function Home() {
     }
   }, [uploadState.file]);
 
-  return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 py-12 px-4 transition-colors">
-      <ThemeToggle />
-      <div className="container mx-auto max-w-4xl">
-        {/* 헤더 */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-            PDF Splitter
-          </h1>
-          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            PDF 파일을 페이지별로 분할하여 개별 파일로 다운로드할 수 있는 도구입니다.
-            간단하게 파일을 업로드하고 원하는 페이지를 선택해서 다운로드하세요.
-          </p>
-        </div>
+  // Dropzone for the robot area
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    const file = acceptedFiles[0];
+    if (!file) return;
 
-        {/* 메인 컨텐츠 */}
-        <div className="mb-8">
-          {showPageSelector && splitPages.length > 0 ? (
-            // 페이지 선택 화면
+    // Validate PDF
+    if (file.type !== 'application/pdf') {
+      handleError('PDF 파일만 업로드할 수 있습니다.');
+      return;
+    }
+
+    // Create UploadedFile object
+    const uploadedFile: UploadedFile = {
+      file,
+      name: file.name,
+      size: file.size,
+      type: file.type,
+    };
+
+    handleFileSelect(uploadedFile);
+  }, [handleFileSelect, handleError]);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      'application/pdf': ['.pdf'],
+    },
+    multiple: false,
+    noClick: true, // Disable click to open file dialog
+  });
+
+  const ROBOT_SCENE_URL = "https://prod.spline.design/PyzDhpQ9E5f1E3MT/scene.splinecode";
+
+  return (
+    <main className="relative">
+      <ThemeToggle />
+
+      {showPageSelector && splitPages.length > 0 ? (
+        // 페이지 선택 화면 - 기존 레이아웃 유지
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 py-12 px-4 transition-colors">
+          <div className="container mx-auto max-w-4xl">
+            <div className="text-center mb-12">
+              <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+                PDF Splitter
+              </h1>
+              <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+                분할된 페이지를 선택하여 다운로드하세요.
+              </p>
+            </div>
             <PageSelector
               pages={splitPages}
               onDownloadSelected={handleDownloadSelected}
             />
-          ) : processingState.isProcessing ? (
-            // 처리 중 화면
+          </div>
+        </div>
+      ) : processingState.isProcessing ? (
+        // 처리 중 화면 - 기존 레이아웃 유지
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 py-12 px-4 transition-colors">
+          <div className="container mx-auto max-w-4xl">
+            <div className="text-center mb-12">
+              <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+                PDF Splitter
+              </h1>
+            </div>
             <ProgressIndicator progress={processingState.progress!} />
-          ) : (
-            // 파일 업로드 화면
-            <FileUpload
-              onFileSelect={handleFileSelect}
-              onError={handleError}
-              uploadState={uploadState}
-            />
+            {processingState.error && (
+              <ErrorMessage
+                error={processingState.error}
+                onReset={resetAll}
+                severity="error"
+              />
+            )}
+          </div>
+        </div>
+      ) : (
+        // 초기 화면 - 3D 로봇과 드래그앤드롭
+        <div {...getRootProps()} className="relative w-screen h-screen overflow-hidden">
+          <input {...getInputProps()} />
+
+          {/* 3D 로봇 배경 */}
+          <InteractiveRobotSpline
+            scene={ROBOT_SCENE_URL}
+            className="absolute inset-0 z-0"
+          />
+
+          {/* 드래그 오버레이 */}
+          {isDragActive && (
+            <div className="absolute inset-0 z-20 bg-blue-500/20 backdrop-blur-sm flex items-center justify-center">
+              <div className="text-center text-white drop-shadow-lg">
+                <p className="text-3xl font-bold">PDF 파일을 여기에 놓으세요</p>
+              </div>
+            </div>
+          )}
+
+          {/* 텍스트 오버레이 */}
+          <div className="absolute inset-0 z-10 pt-20 md:pt-32 lg:pt-40 px-4 md:px-8 pointer-events-none">
+            <div className="text-center text-white drop-shadow-lg w-full max-w-2xl mx-auto">
+              <h1 className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-4">
+                PDF 파일을 로봇 위로 드래그하세요
+              </h1>
+              <p className="text-lg md:text-xl lg:text-2xl opacity-90">
+                PDF를 페이지별로 분할하여 다운로드할 수 있습니다
+              </p>
+            </div>
+          </div>
+
+          {/* 에러 메시지 */}
+          {uploadState.error && (
+            <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 w-full max-w-md px-4 pointer-events-auto">
+              <ErrorMessage
+                error={uploadState.error}
+                onReset={resetAll}
+                severity="error"
+              />
+            </div>
           )}
         </div>
-
-        {/* 처리 에러 표시 */}
-        {processingState.error && (
-          <ErrorMessage
-            error={processingState.error}
-            onReset={resetAll}
-            severity="error"
-          />
-        )}
-      </div>
+      )}
     </main>
   );
 }
