@@ -76,22 +76,22 @@ export function FileUpload({ onFileSelect, onError, uploadState, disabled = fals
     const cursorClass = disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer hover:scale-[1.02]";
 
     if (disabled) {
-      return `${baseClasses} ${cursorClass} border-gray-300 bg-gray-50 text-gray-400`;
+      return `${baseClasses} ${cursorClass} border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-400 dark:text-gray-500`;
     }
 
     if (uploadState.status === 'error' || isDragReject) {
-      return `${baseClasses} ${cursorClass} border-red-400 bg-red-50/50 text-red-700 shadow-sm`;
+      return `${baseClasses} ${cursorClass} border-red-400 dark:border-red-500 bg-red-50/50 dark:bg-red-950/30 text-red-700 dark:text-red-400 shadow-sm`;
     }
 
     if (isDragActive) {
-      return `${baseClasses} ${cursorClass} border-blue-500 bg-blue-50 text-blue-700 shadow-lg scale-[1.02]`;
+      return `${baseClasses} ${cursorClass} border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300 shadow-lg scale-[1.02]`;
     }
 
     if (uploadState.status === 'success') {
-      return `${baseClasses} ${cursorClass} border-green-500 bg-green-50 text-green-700 shadow-md`;
+      return `${baseClasses} ${cursorClass} border-green-500 dark:border-green-400 bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-400 shadow-md`;
     }
 
-    return `${baseClasses} ${cursorClass} border-gray-300 hover:border-gray-400 hover:bg-gray-50/50 hover:shadow-md`;
+    return `${baseClasses} ${cursorClass} border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 hover:bg-gray-50/50 dark:hover:bg-gray-800/50 hover:shadow-md`;
   };
 
   return (
@@ -146,19 +146,19 @@ export function FileUpload({ onFileSelect, onError, uploadState, disabled = fals
                 <Upload className={`h-16 w-16 text-gray-400 transition-transform duration-300 ${isDragActive ? 'scale-110 text-blue-600' : ''}`} />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-gray-900">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
                   {isDragActive ? '파일을 여기에 놓으세요' : 'PDF 파일을 업로드하세요'}
                 </h3>
-                <p className="text-sm text-gray-600 mt-2">
+                <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">
                   {isDragActive ? '파일을 놓으면 업로드가 시작됩니다' : '드래그 앤 드롭하거나 클릭하여 파일을 선택하세요'}
                 </p>
                 <div className="flex items-center justify-center gap-2 mt-3">
-                  <div className="h-1 w-1 rounded-full bg-gray-400" />
-                  <p className="text-xs text-gray-500">
+                  <div className="h-1 w-1 rounded-full bg-gray-400 dark:bg-gray-500" />
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
                     최대 100MB까지 지원
                   </p>
-                  <div className="h-1 w-1 rounded-full bg-gray-400" />
-                  <p className="text-xs text-gray-500">
+                  <div className="h-1 w-1 rounded-full bg-gray-400 dark:bg-gray-500" />
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
                     PDF 형식만 가능
                   </p>
                 </div>

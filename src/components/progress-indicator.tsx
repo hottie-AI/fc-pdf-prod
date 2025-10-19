@@ -15,32 +15,32 @@ export function ProgressIndicator({ progress }: ProgressIndicatorProps) {
       case 'reading':
         return (
           <div className="relative">
-            <Loader2 className="h-12 w-12 text-blue-600 animate-spin" />
-            <File className="h-6 w-6 text-blue-600 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
+            <Loader2 className="h-12 w-12 text-blue-600 dark:text-blue-400 animate-spin" />
+            <File className="h-6 w-6 text-blue-600 dark:text-blue-400 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
           </div>
         );
       case 'splitting':
         return (
           <div className="relative">
-            <div className="h-12 w-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
-            <FileText className="h-6 w-6 text-blue-600 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
+            <div className="h-12 w-12 border-4 border-blue-200 dark:border-blue-800 border-t-blue-600 dark:border-t-blue-400 rounded-full animate-spin" />
+            <FileText className="h-6 w-6 text-blue-600 dark:text-blue-400 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
           </div>
         );
       case 'zipping':
         return (
           <div className="relative">
-            <div className="h-12 w-12 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin" />
-            <Archive className="h-6 w-6 text-purple-600 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
+            <div className="h-12 w-12 border-4 border-purple-200 dark:border-purple-800 border-t-purple-600 dark:border-t-purple-400 rounded-full animate-spin" />
+            <Archive className="h-6 w-6 text-purple-600 dark:text-purple-400 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
           </div>
         );
       case 'complete':
         return (
           <div className="animate-bounce">
-            <CheckCircle className="h-12 w-12 text-green-600" />
+            <CheckCircle className="h-12 w-12 text-green-600 dark:text-green-400" />
           </div>
         );
       default:
-        return <Loader2 className="h-12 w-12 text-gray-400 animate-spin" />;
+        return <Loader2 className="h-12 w-12 text-gray-400 dark:text-gray-500 animate-spin" />;
     }
   };
 
@@ -85,17 +85,17 @@ export function ProgressIndicator({ progress }: ProgressIndicatorProps) {
 
           {/* 상태 텍스트 */}
           <div className="text-center space-y-2">
-            <h3 className="text-xl font-bold text-gray-900 transition-all">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 transition-all">
               {getStatusText()}
             </h3>
-            <p className="text-sm text-gray-600 animate-pulse">
+            <p className="text-sm text-gray-600 dark:text-gray-300 animate-pulse">
               {progress.message}
             </p>
           </div>
 
           {/* 진행률 바 */}
           <div className="space-y-3">
-            <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden shadow-inner">
+            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden shadow-inner">
               <div
                 className={`${getProgressBarColor()} h-3 rounded-full transition-all duration-500 ease-out relative overflow-hidden`}
                 style={{ width: `${progress.percentage}%` }}
@@ -112,12 +112,12 @@ export function ProgressIndicator({ progress }: ProgressIndicatorProps) {
 
             {/* 진행률 정보 */}
             <div className="flex justify-between items-center text-sm font-medium">
-              <span className="text-gray-600">
+              <span className="text-gray-600 dark:text-gray-300">
                 {progress.totalPages > 0 && progress.status !== 'reading'
                   ? `${progress.currentPage} / ${progress.totalPages} 페이지`
                   : '처리 중...'}
               </span>
-              <span className="text-gray-900 font-bold tabular-nums">
+              <span className="text-gray-900 dark:text-gray-100 font-bold tabular-nums">
                 {progress.percentage}%
               </span>
             </div>
@@ -125,10 +125,10 @@ export function ProgressIndicator({ progress }: ProgressIndicatorProps) {
 
           {/* 완료 시 추가 메시지 */}
           {progress.status === 'complete' && (
-            <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 rounded-lg p-5 mt-4 animate-fade-in">
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border-2 border-green-300 dark:border-green-700 rounded-lg p-5 mt-4 animate-fade-in">
               <div className="flex items-center justify-center gap-2">
-                <CheckCircle className="h-5 w-5 text-green-600" />
-                <p className="text-sm font-semibold text-green-800">
+                <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+                <p className="text-sm font-semibold text-green-800 dark:text-green-300">
                   모든 작업이 완료되었습니다!
                 </p>
               </div>

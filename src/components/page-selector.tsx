@@ -2,24 +2,20 @@
 
 import React, { useState, useEffect } from 'react';
 import { SplitPageInfo } from '@/types';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Download, FileArchive, CheckSquare, Square } from 'lucide-react';
+import { Download, FileArchive, FileText } from 'lucide-react';
 
 interface PageSelectorProps {
   pages: SplitPageInfo[];
   onDownloadSelected: (selectedPages: SplitPageInfo[]) => void;
-  onReset: () => void;
 }
 
-export function PageSelector({ pages, onDownloadSelected, onReset }: PageSelectorProps) {
+export function PageSelector({ pages, onDownloadSelected }: PageSelectorProps) {
   const [selectedPages, setSelectedPages] = useState<Set<number>>(new Set());
-  const [selectAll, setSelectAll] = useState(false);
 
   useEffect(() => {
     // 초기에 모든 페이지 선택
     setSelectedPages(new Set(pages.map(p => p.pageNumber)));
-    setSelectAll(true);
   }, [pages]);
 
   const togglePage = (pageNumber: number) => {
@@ -30,17 +26,6 @@ export function PageSelector({ pages, onDownloadSelected, onReset }: PageSelecto
       newSelected.add(pageNumber);
     }
     setSelectedPages(newSelected);
-    setSelectAll(newSelected.size === pages.length);
-  };
-
-  const toggleSelectAll = () => {
-    if (selectAll) {
-      setSelectedPages(new Set());
-      setSelectAll(false);
-    } else {
-      setSelectedPages(new Set(pages.map(p => p.pageNumber)));
-      setSelectAll(true);
-    }
   };
 
   const handleDownloadSelected = () => {
@@ -48,7 +33,8 @@ export function PageSelector({ pages, onDownloadSelected, onReset }: PageSelecto
     onDownloadSelected(selected);
   };
 
-  const downloadSinglePage = (page: SplitPageInfo) => {
+  const downloadSinglePage = (page: SplitPageInfo, e: React.MouseEvent) => {
+    e.stopPropagation();
     const blob = new Blob([page.pdfBytes as BlobPart], { type: 'application/pdf' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -69,111 +55,106 @@ export function PageSelector({ pages, onDownloadSelected, onReset }: PageSelecto
   };
 
   return (
-    <Card className="w-full max-w-4xl mx-auto shadow-xl animate-fade-in">
-      <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <CardTitle className="text-2xl font-bold text-gray-900">
-            분할된 페이지 ({pages.length}개)
-          </CardTitle>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={toggleSelectAll}
-              className="flex items-center gap-2 hover:bg-blue-50 transition-colors"
+    <div className="w-full max-w-7xl mx-auto">
+      {/* Grid 레이아웃 - 4열 고정 */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+        {pages.map((page, index) => {
+          const isSelected = selectedPages.has(page.pageNumber);
+
+          return (
+            <div
+              key={page.pageNumber}
+              className={`relative group cursor-pointer rounded-lg border-2 transition-all duration-200 overflow-hidden ${
+                isSelected
+                  ? 'border-blue-500 dark:border-blue-400 shadow-lg scale-105'
+                  : 'border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 hover:shadow-md'
+              }`}
+              onClick={() => togglePage(page.pageNumber)}
+              style={{ animationDelay: `${index * 30}ms` }}
             >
-              {selectAll ? <CheckSquare className="h-4 w-4 text-blue-600" /> : <Square className="h-4 w-4" />}
-              전체 선택
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onReset}
-              className="hover:bg-gray-100 transition-colors"
-            >
-              다시 업로드
-            </Button>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4 pt-6">
-        {/* 페이지 리스트 */}
-        <div className="max-h-96 overflow-y-auto space-y-2 border rounded-lg p-4 bg-gray-50/50">
-          {pages.map((page, index) => {
-            const isSelected = selectedPages.has(page.pageNumber);
-            return (
-              <div
-                key={page.pageNumber}
-                className={`flex items-center justify-between p-4 rounded-lg border-2 transition-all duration-200 cursor-pointer group ${
-                  isSelected
-                    ? 'border-blue-500 bg-blue-50 shadow-md scale-[1.01]'
-                    : 'border-gray-200 bg-white hover:border-blue-300 hover:shadow-sm hover:scale-[1.01]'
-                }`}
-                onClick={() => togglePage(page.pageNumber)}
-                style={{ animationDelay: `${index * 30}ms` }}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="flex-shrink-0 transition-transform group-hover:scale-110">
-                    {isSelected ? (
-                      <CheckSquare className="h-5 w-5 text-blue-600 animate-scale-in" />
-                    ) : (
-                      <Square className="h-5 w-5 text-gray-400 group-hover:text-blue-500" />
-                    )}
-                  </div>
-                  <div>
-                    <p className="font-semibold text-gray-900">
-                      페이지 {page.pageNumber}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      {page.fileName} • {formatFileSize(page.pdfBytes.length)}
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    downloadSinglePage(page);
-                  }}
-                  className="flex items-center gap-2 hover:bg-blue-100 transition-all hover:scale-105"
+              {/* 체크박스 오버레이 */}
+              <div className="absolute top-2 left-2 z-10">
+                <div
+                  className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-all ${
+                    isSelected
+                      ? 'bg-blue-500 dark:bg-blue-600 border-blue-500 dark:border-blue-600'
+                      : 'bg-white dark:bg-gray-700 border-gray-400 dark:border-gray-500 group-hover:border-blue-400 dark:group-hover:border-blue-500'
+                  }`}
                 >
-                  <Download className="h-4 w-4" />
+                  {isSelected && (
+                    <svg
+                      className="w-4 h-4 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={3}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                  )}
+                </div>
+              </div>
+
+              {/* PDF 아이콘 */}
+              <div className="h-32 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 flex flex-col items-center justify-center relative p-3">
+                <FileText className="h-10 w-10 text-red-500 dark:text-red-400 mb-1" />
+                <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                  {page.pageNumber}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {formatFileSize(page.pdfBytes.length)}
+                </p>
+              </div>
+
+              {/* 페이지 정보 */}
+              <div className="bg-white dark:bg-gray-800 p-2 border-t dark:border-gray-700">
+                <p className="font-semibold text-gray-900 dark:text-gray-100 text-center mb-1.5 text-xs">
+                  페이지 {page.pageNumber}
+                </p>
+
+                {/* 개별 다운로드 버튼 */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={(e) => downloadSinglePage(page, e)}
+                  className="w-full flex items-center justify-center gap-1.5 hover:bg-blue-50 transition-colors text-xs py-1.5"
+                >
+                  <Download className="h-3 w-3" />
                   다운로드
                 </Button>
               </div>
-            );
-          })}
-        </div>
+            </div>
+          );
+        })}
+      </div>
 
-        {/* 선택 정보 및 다운로드 버튼 */}
-        <div className="bg-gradient-to-r from-gray-50 to-blue-50/50 rounded-xl p-5 space-y-4 border border-gray-200 shadow-sm">
-          <div className="flex items-center justify-between text-sm font-medium">
+      {/* 하단 ZIP 다운로드 버튼 */}
+      <div className="sticky bottom-0 bg-white dark:bg-gray-800 border-t-2 border-gray-200 dark:border-gray-700 shadow-lg rounded-t-xl p-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <div className="h-2 w-2 rounded-full bg-blue-600 animate-pulse" />
-              <span className="text-gray-700">
+              <div className="h-3 w-3 rounded-full bg-blue-600 dark:bg-blue-500 animate-pulse" />
+              <span className="text-lg font-semibold text-gray-700 dark:text-gray-200">
                 {selectedPages.size}개 페이지 선택됨
               </span>
             </div>
-            <span className="text-gray-700 font-semibold">
-              총 크기: {formatFileSize(
-                pages
-                  .filter(p => selectedPages.has(p.pageNumber))
-                  .reduce((sum, p) => sum + p.pdfBytes.length, 0)
-              )}
-            </span>
           </div>
 
           <Button
             onClick={handleDownloadSelected}
             disabled={selectedPages.size === 0}
-            className="w-full flex items-center justify-center gap-2 hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-md"
+            size="lg"
+            className="w-full flex items-center justify-center gap-3 text-lg py-6 hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-md"
           >
-            <FileArchive className="h-4 w-4" />
+            <FileArchive className="h-5 w-5" />
             선택한 페이지 ZIP으로 다운로드 ({selectedPages.size}개)
           </Button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

@@ -61,10 +61,10 @@ export function ErrorMessage({
   };
 
   const errorDetails = getErrorDetails(error);
-  const bgColor = severity === 'error' ? 'bg-red-50' : 'bg-yellow-50';
-  const borderColor = severity === 'error' ? 'border-red-300' : 'border-yellow-300';
-  const textColor = severity === 'error' ? 'text-red-800' : 'text-yellow-800';
-  const iconColor = severity === 'error' ? 'text-red-600' : 'text-yellow-600';
+  const bgColor = severity === 'error' ? 'bg-red-50 dark:bg-red-950/30' : 'bg-yellow-50 dark:bg-yellow-950/30';
+  const borderColor = severity === 'error' ? 'border-red-300 dark:border-red-700' : 'border-yellow-300 dark:border-yellow-700';
+  const textColor = severity === 'error' ? 'text-red-800 dark:text-red-300' : 'text-yellow-800 dark:text-yellow-300';
+  const iconColor = severity === 'error' ? 'text-red-600 dark:text-red-400' : 'text-yellow-600 dark:text-yellow-400';
 
   return (
     <Card className={`w-full max-w-2xl mx-auto ${bgColor} border-2 ${borderColor} shadow-lg`}>
