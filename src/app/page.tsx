@@ -205,39 +205,53 @@ export default function Home() {
         </div>
       ) : (
         // 초기 화면 - 3D 로봇과 드래그앤드롭
-        <div {...getRootProps()} className="relative w-screen h-screen overflow-hidden">
-          <input {...getInputProps()} />
-
-          {/* 3D 로봇 배경 */}
-          <InteractiveRobotSpline
-            scene={ROBOT_SCENE_URL}
-            className="absolute inset-0 z-0"
-          />
-
-          {/* 드래그 오버레이 */}
-          {isDragActive && (
-            <div className="absolute inset-0 z-20 bg-blue-500/20 backdrop-blur-sm flex items-center justify-center">
-              <div className="text-center text-white drop-shadow-lg">
-                <p className="text-3xl font-bold">PDF 파일을 여기에 놓으세요</p>
-              </div>
-            </div>
-          )}
-
-          {/* 텍스트 오버레이 */}
-          <div className="absolute inset-0 z-10 pt-20 md:pt-32 lg:pt-40 px-4 md:px-8 pointer-events-none">
-            <div className="text-center text-white drop-shadow-lg w-full max-w-2xl mx-auto">
-              <h1 className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-4">
+        <div className="relative w-screen h-screen overflow-hidden" style={{ backgroundColor: '#010101' }}>
+          {/* 텍스트 헤더 */}
+          <div className="absolute top-0 left-0 right-0 z-10 pt-12 md:pt-16 lg:pt-20 px-4 md:px-8">
+            <div className="text-center text-white w-full max-w-2xl mx-auto">
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
                 PDF 파일을 로봇 위로 드래그하세요
               </h1>
-              <p className="text-lg md:text-xl lg:text-2xl opacity-90">
+              <p className="text-lg md:text-xl lg:text-2xl opacity-80">
                 PDF를 페이지별로 분할하여 다운로드할 수 있습니다
               </p>
             </div>
           </div>
 
+          {/* 중앙 로봇 드래그앤드롭 영역 */}
+          <div className="absolute inset-0 flex items-center justify-center px-4">
+            <div
+              {...getRootProps()}
+              className={`relative w-full max-w-3xl aspect-square max-h-[70vh] rounded-2xl overflow-hidden transition-all duration-300 ${
+                isDragActive
+                  ? 'ring-4 ring-blue-500 ring-offset-4 scale-105'
+                  : 'hover:scale-102'
+              }`}
+            >
+              <input {...getInputProps()} />
+
+              {/* 3D 로봇 */}
+              <div className="absolute inset-0 z-0">
+                <InteractiveRobotSpline
+                  scene={ROBOT_SCENE_URL}
+                  className="w-full h-full"
+                />
+              </div>
+
+              {/* 드래그 오버레이 */}
+              {isDragActive && (
+                <div className="absolute inset-0 z-20 bg-blue-500/30 backdrop-blur-sm flex items-center justify-center">
+                  <div className="text-center text-white drop-shadow-lg">
+                    <p className="text-2xl md:text-3xl font-bold">PDF 파일을 여기에 놓으세요</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* 에러 메시지 */}
           {uploadState.error && (
-            <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 w-full max-w-md px-4 pointer-events-auto">
+            <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 w-full max-w-md px-4">
               <ErrorMessage
                 error={uploadState.error}
                 onReset={resetAll}
