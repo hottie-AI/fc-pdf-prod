@@ -209,7 +209,7 @@ export default function Home() {
           {/* 텍스트 헤더 */}
           <div className="absolute top-0 left-0 right-0 z-10 pt-12 md:pt-16 lg:pt-20 px-4 md:px-8">
             <div className="text-center text-white w-full max-w-2xl mx-auto">
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 whitespace-nowrap">
                 PDF 파일을 로봇 위로 드래그하세요
               </h1>
               <p className="text-lg md:text-xl lg:text-2xl opacity-80">
